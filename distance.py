@@ -3,165 +3,166 @@ import numpy as np
 from scipy.spatial.distance import pdist, squareform
 
 
-def plot_lines_between_nodes(warped_points, bird_image, d_thresh):
-    p = np.array(warped_points)
-    dist_condensed = pdist(p)
-    dist = squareform(dist_condensed)
+def plot_lines_between_nodes(wrapped_points, top_image, threshhold_distance):
+    points = np.array(wrapped_points)
+    dist_condense = pdist(points, 'minkowski', p=1.8)
+    distance = squareform(dist_condense)
 
-    # Close enough: 10 feet mark
-    dd = np.where(dist < d_thresh * 6 / 10)
-    close_p = []
+    # 10 feet calculation
+    cal_distance = np.where(distance < threshhold_distance * 6 / 10)
+    close_point = []
     color_10 = (0, 0, 255)
-    lineThickness = 4
-    ten_feet_violations = len(np.where(dist_condensed < 10 / 6 * d_thresh)[0])
-    for i in range(int(np.ceil(len(dd[0]) / 2))):
-        if dd[0][i] != dd[1][i]:
-            point1 = dd[0][i]
-            point2 = dd[1][i]
+    lineThick = 4
+    tenfeet_violations = len(np.where(dist_condense < 10 / 6 * threshhold_distance)[0])
+    for i in range(int(np.ceil(len(cal_distance[0]) / 2))):
+        if cal_distance[0][i] != cal_distance[1][i]:
+            point1 = cal_distance[0][i]
+            point2 = cal_distance[1][i]
 
-            close_p.append([point1, point2])
+            close_point.append([point1, point2])
 
             cv2.line(
-                bird_image,
-                (p[point1][0], p[point1][1]),
-                (p[point2][0], p[point2][1]),
+                top_image,
+                (points[point1][0], points[point1][1]),
+                (points[point2][0], points[point2][1]),
                 color_10,
-                lineThickness,
+                lineThick,
             )
 
-    # Really close: 6 feet mark
-    dd = np.where(dist < d_thresh)
-    six_feet_violations = len(np.where(dist_condensed < d_thresh)[0])
-    total_pairs = len(dist_condensed)
-    danger_p = []
+
+
+    # 6 feet calculation
+    cal_distance = np.where(distance < threshhold_distance)
+    sixfeet_violations = len(np.where(dist_condense < threshhold_distance)[0])
+    total_pairs = len(dist_condense)
+    danger_point = []
     color_6 = (0, 0, 255)
-    for i in range(int(np.ceil(len(dd[0]) / 2))):
-        if dd[0][i] != dd[1][i]:
-            point1 = dd[0][i]
-            point2 = dd[1][i]
+    for i in range(int(np.ceil(len(cal_distance[0]) / 2))):
+        if cal_distance[0][i] != cal_distance[1][i]:
+            point1 = cal_distance[0][i]
+            point2 = cal_distance[1][i]
 
-            danger_p.append([point1, point2])
+            danger_point.append([point1, point2])
             cv2.line(
-                bird_image,
-                (p[point1][0], p[point1][1]),
-                (p[point2][0], p[point2][1]),
+                top_image,
+                (points[point1][0], points[point1][1]),
+                (points[point2][0], points[point2][1]),
                 color_6,
-                lineThickness,
+                lineThick,
             )
-    # Display Birdeye view
-    cv2.imshow("bird-view", bird_image)
+
+    # display top-view
+    cv2.imshow("top-view", top_image)
     cv2.waitKey(1)
 
-    return six_feet_violations, ten_feet_violations, total_pairs
+    return sixfeet_violations, tenfeet_violations, total_pairs
 
 
-def plot_points_on_bird_eye_view(frame, pedestrian_boxes, M, scale_w, scale_h):
-    frame_h = frame.shape[0]
-    frame_w = frame.shape[1]
+def plot_points_on_bird_eye_view(frame, pedestrian_boxes, Mark, scale_width, scale_height):
+    frame_height = frame.shape[0]
+    frame_width = frame.shape[1]
 
-    node_radius = 7
-    color_node = (41, 41, 41)
-    thickness_node = 20
-    solid_back_color = (255, 255, 255)
+    radius_of_node = 7
+    node_color = (41, 41, 41)
+    thickness_of_node = 20
+    solid_black_color = (255, 255, 255)
 
-    blank_image = np.zeros(
-        (int(frame_h * scale_h), int(frame_w * scale_w), 3), np.uint8
+    blank_img = np.zeros(
+        (int(frame_height * scale_height), int(frame_width * scale_width), 3), np.uint8
     )
-    blank_image[:] = solid_back_color
-    warped_pts = []
+    blank_img[:] = solid_black_color
+    wrapped_pts = []
     for i in range(len(pedestrian_boxes)):
 
         mid_point_x = int(
-            (pedestrian_boxes[i][1] * frame_w + pedestrian_boxes[i][3] * frame_w) / 2
+            (pedestrian_boxes[i][1] * frame_width + pedestrian_boxes[i][3] * frame_width) / 2
         )
         mid_point_y = int(
-            (pedestrian_boxes[i][0] * frame_h + pedestrian_boxes[i][2] * frame_h) / 2
+            (pedestrian_boxes[i][0] * frame_height + pedestrian_boxes[i][2] * frame_height) / 2
         )
 
-        pts = np.array([[[mid_point_x, mid_point_y]]], dtype="float32")
-        warped_pt = cv2.perspectiveTransform(pts, M)[0][0]
-        warped_pt_scaled = [int(warped_pt[0] * scale_w), int(warped_pt[1] * scale_h)]
+        points = np.array([[[mid_point_x, mid_point_y]]], dtype="float32")
+        wrapped_pt = cv2.perspectiveTransform(points, Mark)[0][0]
+        warped_point_scaled = [int(wrapped_pt[0] * scale_width), int(wrapped_pt[1] * scale_height)]
 
-        warped_pts.append(warped_pt_scaled)
-        bird_image = cv2.circle(
-            blank_image,
-            (warped_pt_scaled[0], warped_pt_scaled[1]),
-            node_radius,
-            color_node,
-            thickness_node,
+        wrapped_pts.append(warped_point_scaled)
+        top_image = cv2.circle(
+            blank_img,
+            (warped_point_scaled[0], warped_point_scaled[1]),
+            radius_of_node,
+            node_color,
+            thickness_of_node,
         )
 
-    return warped_pts, bird_image
+    return wrapped_pts, top_image
 
 
 def get_camera_perspective(img, src_points):
-    IMAGE_H = img.shape[0]
-    IMAGE_W = img.shape[1]
-    src = np.float32(np.array(src_points))
-    dst = np.float32([[0, IMAGE_H], [IMAGE_W, IMAGE_H], [0, 0], [IMAGE_W, 0]])
+    Image_h = img.shape[0]
+    Image_w = img.shape[1]
+    source = np.float32(np.array(src_points))
+    distance = np.float32([[0, Image_h], [Image_w, Image_h], [0, 0], [Image_w, 0]])
 
-    M = cv2.getPerspectiveTransform(src, dst)
-    M_inv = cv2.getPerspectiveTransform(dst, src)
+    Mark = cv2.getPerspectiveTransform(source, distance)
+    Mark_inv = cv2.getPerspectiveTransform(distance, source)
 
-    return M, M_inv
+    return Mark, Mark_inv
 
 
 def put_text(frame, text, text_offset_y=25):
-    font_scale = 1
+    font_scale_per = 1
     font = cv2.FONT_HERSHEY_SIMPLEX
-    rectangle_bgr = (255, 255, 255)
-    (text_width, text_height) = cv2.getTextSize(
-        text, font, fontScale=font_scale, thickness=1
+    rectangle_background = (255, 255, 255)
+    (text_w, text_h) = cv2.getTextSize(
+        text, font, fontScale=font_scale_per, thickness=1
     )[0]
     # set the text_display start position
     text_offset_x = frame.shape[1] - 550
     # make the coords of the box with a small padding of two pixels
-    box_coords = (
+    box_coordinate = (
         (text_offset_x, text_offset_y + 5),
-        (text_offset_x + text_width + 2, text_offset_y - text_height - 2),
+        (text_offset_x + text_w + 2, text_offset_y - text_h - 2),
     )
     frame = cv2.rectangle(
-        frame, box_coords[0], box_coords[1], rectangle_bgr, cv2.FILLED
+        frame, box_coordinate[0], box_coordinate[1], rectangle_background, cv2.FILLED
     )
     frame = cv2.putText(
         frame,
         text,
         (text_offset_x, text_offset_y),
         font,
-        fontScale=font_scale,
+        fontScale=font_scale_per,
         color=(41, 41, 41),
         thickness=2,
     )
 
-    return frame, 2 * text_height + text_offset_y
-
+    return frame, 2 * text_h + text_offset_y
 
 def calculate_stay_at_home_index(total_pedestrians_detected, frame_num, fps):
-    normally_people = 10
-    pedestrian_per_sec = np.round(total_pedestrians_detected / frame_num, 1)
-    sh_index = 1 - pedestrian_per_sec / normally_people
-    return pedestrian_per_sec, sh_index
+    normal_people = 10
+    pedestrians = np.round(total_pedestrians_detected / frame_num, 1)
+    sh_idx = 1 - pedestrians / normal_people
+    return pedestrians, sh_idx
 
 
 def plot_pedestrian_boxes_on_image(frame, pedestrian_boxes):
-    frame_h = frame.shape[0]
-    frame_w = frame.shape[1]
-    thickness = 2
-    # color_node = (192, 133, 156)
-    color_node = (0, 0, 255)
-    # color_10 = (80, 172, 110)
+    frame_height = frame.shape[0]
+    frame_width = frame.shape[1]
+    thick = 2
+
+    node_color = (0, 0, 255)
 
     for i in range(len(pedestrian_boxes)):
-        pt1 = (
-            int(pedestrian_boxes[i][1] * frame_w),
-            int(pedestrian_boxes[i][0] * frame_h),
+        point1 = (
+            int(pedestrian_boxes[i][1] * frame_width),
+            int(pedestrian_boxes[i][0] * frame_height),
         )
-        pt2 = (
-            int(pedestrian_boxes[i][3] * frame_w),
-            int(pedestrian_boxes[i][2] * frame_h),
+        point2 = (
+            int(pedestrian_boxes[i][3] * frame_width),
+            int(pedestrian_boxes[i][2] * frame_height),
         )
 
-        frame_with_boxes = cv2.rectangle(frame, pt1, pt2, color_node, thickness)
+        frame_boxes = cv2.rectangle(frame, point1, point2, node_color, thick)
 
 
-    return frame_with_boxes
+    return frame_boxes

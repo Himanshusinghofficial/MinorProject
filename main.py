@@ -32,7 +32,7 @@ args = parser.parse_args()
 
 processing_video = args.videopath
 
-# Define a DNN_model
+# define a DNN_model
 DNN = model()
 # Get video handle
 cap = cv2.VideoCapture(processing_video)
@@ -41,14 +41,14 @@ width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 
 scale_width = 2 / 2
-scale_height = 4 / 2
+scale_height = 2 / 2
 
 SOLID_BLACK_COLOR = (41, 41, 41)
 # Setup video writer
 fourcc = cv2.VideoWriter_fourcc(*"XVID")
-output_result = cv2.VideoWriter("Top_view.avi", fourcc, fps, (width, height))
+output_result = cv2.VideoWriter("Video_detect.avi", fourcc, fps, (width, height))
 bird_output = cv2.VideoWriter(
-    "Video_bird.avi", fourcc, fps, (int(width * scale_width), int(height * scale_height))
+    "Top_view.avi", fourcc, fps, (int(width * scale_width), int(height * scale_height))
 )
 # Initialize necessary variables
 frame_number = 0

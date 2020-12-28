@@ -13,8 +13,6 @@ from google.protobuf import descriptor_pb2
 _sym_db = _symbol_database.Default()
 
 
-
-
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='object_detection/protos/string_int_label_map.proto',
   package='object_detection.protos',

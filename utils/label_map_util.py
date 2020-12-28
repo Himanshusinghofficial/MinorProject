@@ -109,7 +109,7 @@ def load_labelmap(path):
   """Loads label map proto.
 
   Args:
-    path: path to StringIntLabelMap proto text file.
+    path: path to StringIntLabelMap proto text_display file.
   Returns:
     a StringIntLabelMapProto
   """
@@ -148,7 +148,7 @@ def create_category_index_from_labelmap(label_map_path):
   """Reads a label map and returns a category index.
 
   Args:
-    label_map_path: Path to `StringIntLabelMap` proto text file.
+    label_map_path: Path to `StringIntLabelMap` proto text_display file.
 
   Returns:
     A category index, which is a dictionary that maps integer ids to dicts
